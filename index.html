@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>作業日報 - Báo cáo công việc</title>
+  <style>
+    :root {
+      --bg: #f2f2f7;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #007aff;
+      --primary-text: #ffffff;
+      --danger: #ef4444;
+      --success: #16a34a;
+      --tag-bg: #f3f4f6;
+      --tag-active: #dbeafe;
+      --tag-active-border: #2563eb;
+      --drawer-bg: #ffffff;
+      --shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+      --primary: #3b82f6;
+      --primary-text: #ffffff;
+      --danger: #f87171;
+      --success: #22c55e;
+      --tag-bg: #0f172a;
+      --tag-active: #1e3a8a;
+      --tag-active-border: #60a5fa;
+      --drawer-bg: #1e293b;
+      --shadow: 0 2px 12px rgba(0,0,0,0.35);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 5px 12px 5px 5px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--primary);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .top-title { font-weight: 700; font-size: 16px; }
+    .container { max-width: 640px; margin: 0 auto; padding: 14px 14px 48px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--tag-bg);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .pill.active {
+      background: var(--tag-active);
+      border-color: var(--tag-active-border);
+      color: var(--primary);
+    }
+    .btn {
+      width: 100%;
+      padding: 13px 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--primary); color: var(--primary-text); }
+    .btn-secondary { background: var(--tag-bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    .check-item input { width: auto; transform: scale(1.15); }
+
+    /* Drawer */
+    .drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 40;
+    }
+    .drawer-backdrop.open { display: block; }
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: -290px;
+      width: 280px;
+      height: 100%;
+      background: var(--drawer-bg);
+      border-right: 1px solid var(--border);
+      z-index: 50;
+      padding: 18px 14px;
+      transition: left 0.22s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .drawer.open { left: 0; }
+    .drawer-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .drawer-item.active { background: var(--tag-active); color: var(--primary); }
+
+    /* Calendar (TimeTree style) */
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+    .cal-dow { font-size: 12px; font-weight: 700; color: var(--muted); padding: 4px 0; }
+    .cal-day {
+      min-height: 62px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+      background: var(--bg);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+    .cal-day.empty { background: transparent; border-color: transparent; cursor: default; }
+    .cal-day.today { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+    .cal-num { font-size: 12px; font-weight: 700; }
+    .event-chip {
+      width: 100%;
+      font-size: 10px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      background: var(--primary);
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .event-chip.holiday { background: #d97706; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111827;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      z-index: 60;
+      display: none;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="loginScreen" class="container" style="padding-top: 48px;">
+    <div class="card" style="text-align: center; padding: 24px 18px;">
+      <h2 style="margin: 0 0 8px;">作業日報 (スギモト株式会社)</h2>
+      <p class="hint" id="loginSubtitle" style="margin-bottom: 18px;">Đăng nhập bằng tài khoản Google để tự động ghi nhận người gửi báo cáo.</p>
+      <div id="googleBtnContainer" style="display: flex; justify-content: center; margin-bottom: 14px;"></div>
+      <button class="btn btn-primary" onclick="demoLogin()" id="btnDemoLogin">Dùng thử nhanh với tài khoản mẫu</button>
+    </div>
+  </div>
+
+  <div id="appScreen" class="hidden">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleDrawer(true)">
+        <span id="topAvatar" class="avatar">U</span>
+        <span id="topMenuLabel">Menu</span>
+      </button>
+      <div class="top-title" id="topPageTitle">Làm báo cáo hôm nay</div>
+      <div style="width: 60px;"></div>
+    </div>
+
+    <div id="drawerBackdrop" class="drawer-backdrop" onclick="toggleDrawer(false)"></div>
+    <aside id="drawer" class="drawer">
+      <div class="drawer-user">
+        <span id="drawerAvatar" class="avatar">U</span>
+        <div>
+          <div id="drawerName" style="font-weight: 700; font-size: 14px;">User</div>
+          <div id="drawerEmail" class="hint" style="margin: 0;">user@example.com</div>
+        </div>
+      </div>
+      <button class="drawer-item active" id="navReport" onclick="switchPage('report')">📝 Làm báo cáo hôm nay</button>
+      <button class="drawer-item" id="navCalendar" onclick="switchPage('calendar')">📅 Lịch làm việc</button>
+      <button class="drawer-item" id="navSettings" onclick="switchPage('settings')">⚙️ Cài đặt</button>
+    </aside>
+
+    <main class="container">
+      <!-- Page 1: Report -->
+      <section id="pageReport">
+        <form id="reportForm" onsubmit="submitReport(event)">
+          <div class="card">
+            <div>
+              <label class="label" id="lblDate">Ngày (日付)</label>
+              <input type="date" id="fDate" required />
+            </div>
+            <div style="margin-top: 10px;">
+              <label class="label" id="lblSite">Tên công trình (現場名)</label>
+              <input type="text" id="fSite" placeholder="VD: 桑名現場 / Công trình A" required />
+            </div>
+          </div>
+
+          <div class="card">
+            <label class="label" id="lblWeather">Thời tiết (天候)</label>
+            <div class="pill-group" id="weatherGroup"></div>
+
+            <label class="label" id="lblWorkType" style="margin-top: 12px;">Phân loại đi làm (出勤の区分)</label>
+            <div class="pill-group" id="workTypeGroup"></div>
+
+            <label class="label" id="lblHealth" style="margin-top: 12px;">Sức khỏe (体調)</label>
+            <div class="pill-group" id="healthGroup"></div>
+            <div id="healthNoteBox" class="hidden" style="margin-top: 8px;">
+              <input type="text" id="fHealthNote" placeholder="Ghi chú tình trạng sức khỏe..." />
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="row-2">
+              <div>
+                <label class="label" id="lblStart">Giờ bắt đầu</label>
+                <input type="time" id="fStart" value="08:00" required />
+              </div>
+              <div>
+                <label class="label" id="lblEnd">Giờ kết thúc</label>
+                <input type="time" id="fEnd" value="17:00" required />
+              </div>
+            </div>
+            <div style="margin-top: 10px;">
+              <label class="label" id="lblBreak">Thời gian nghỉ (phút - 休憩時間)</label>
+              <input type="number" id="fBreak" value="120" min="0" step="15" required />
+              <div class="hint" id="breakHint">Mặc định 120 phút: 08:00–10:00, nghỉ 30p, 10:30–12:00, trưa 60p, 13:00–15:00, nghỉ 30p, 15:30–17:00.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <label class="label" id="lblTask">Nội dung công việc hôm nay (今日の作業内容)</label>
+            <div class="pill-group" id="taskPresets" style="margin-bottom: 8px;"></div>
+            <input type="text" id="fTask" placeholder="VD: 足場組立 / Dựng giàn giáo" required />
+
+            <label class="label" id="lblTools" style="margin-top: 12px;">Máy móc / dụng cụ (使用した機械・工具)</label>
+            <input type="text" id="fTools" placeholder="VD: インパクト / 吊り具" />
+          </div>
+
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="label" id="lblSafety" style="margin: 0;">Xác nhận an toàn (安全確認)</label>
+              <button type="button" class="pill" onclick="checkAllSafety(true)" id="btnCheckAll">Chọn tất cả</button>
+            </div>
+            <div id="safetyList"></div>
+          </div>
+
+          <div class="card">
+            <label class="label" id="lblMemo">ヒヤリハット・明日の予定 (Tùy chọn)</label>
+            <textarea id="fMemo" placeholder="特になし"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btnSubmit">Gửi báo cáo (送信)</button>
+        </form>
+      </section>
+
+      <!-- Page 2: Calendar (TimeTree style) -->
+      <section id="pageCalendar" class="hidden">
+        <div class="card">
+          <div class="cal-header">
+            <button class="pill" onclick="changeMonth(-1)" id="btnPrevMonth">◀ Tháng trước</button>
+            <strong id="calMonthTitle"></strong>
+            <button class="pill" onclick="changeMonth(1)" id="btnNextMonth">Tháng sau ▶</button>
+          </div>
+          <div class="hint" id="calHint" style="margin-bottom: 8px;">Bấm vào ngày bất kỳ để xem hoặc bổ sung báo cáo cho ngày đó.</div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div id="dayDetailCard" class="card hidden">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong id="selectedDateTitle"></strong>
+            <button class="pill active" onclick="addReportForSelectedDate()" id="btnAddForDay">+ Bổ sung báo cáo</button>
+          </div>
+          <div id="dayReportsList" style="margin-top: 10px;"></div>
+        </div>
+      </section>
+
+      <!-- Page 3: Settings -->
+      <section id="pageSettings" class="hidden">
+        <div class="card">
+          <label class="label" id="lblAccount">Tài khoản đăng nhập</label>
+          <p id="settingsAccountInfo" class="hint" style="margin-bottom: 10px;"></p>
+          <button class="btn btn-danger" onclick="logout()" id="btnLogout">Đăng xuất</button>
+        </div>
+
+        <div class="card">
+          <label class="label" id="lblLang">Ngôn ngữ (言語 / Language)</label>
+          <select id="selLang" onchange="setLanguage(this.value)">
+            <option value="vi">Tiếng Việt</option>
+            <option value="ja">日本語 (Tiếng Nhật)</option>
+            <option value="en">English (Tiếng Anh)</option>
+          </select>
+
+          <label class="label" id="lblTheme" style="margin-top: 12px;">Chế độ giao diện</label>
+          <div class="pill-group">
+            <button class="pill" id="btnLight" onclick="setTheme('light')">☀️ Sáng (Light)</button>
+            <button class="pill" id="btnDark" onclick="setTheme('dark')">🌙 Tối (Dark)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <label class="label">Google Apps Script Web App URL</label>
+          <input type="url" id="cfgScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+          <label class="label" style="margin-top: 10px;">Google OAuth Client ID (tùy chọn)</label>
+          <input type="text" id="cfgClientId" placeholder="xxxx.apps.googleusercontent.com" />
+          <button class="btn btn-secondary" style="margin-top: 12px;" onclick="saveConfig()" id="btnSaveCfg">Lưu cấu hình</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const WEATHERS = [
+      { ja: "晴", vi: "☀️ Nắng", en: "☀️ Sunny" },
+      { ja: "曇", vi: "☁️ Mây", en: "☁️ Cloudy" },
+      { ja: "雨", vi: "🌧️ Mưa", en: "🌧️ Rain" },
+      { ja: "雪", vi: "❄️ Tuyết", en: "❄️ Snow" }
+    ];
+
+    const WORK_TYPES = [
+      { ja: "出勤日", vi: "Đi làm thường", en: "Regular day", holiday: false },
+      { ja: "休日出勤", vi: "Làm ngày nghỉ", en: "Holiday work", holiday: true }
+    ];
+
+    const HEALTH_TYPES = [
+      { ja: "良好", vi: "Tốt", en: "Good", bad: false },
+      { ja: "不良", vi: "Không tốt", en: "Poor", bad: true }
+    ];
+
+    const TASK_PRESETS = [
+      { ja: "足場組立・解体", vi: "Dựng/tháo giàn giáo", en: "Scaffolding" },
+      { ja: "内装・建物解体", vi: "Tháo dỡ/phá dỡ", en: "Demolition" },
+      { ja: "玉掛け・揚重", vi: "Cẩu hàng/tamakake", en: "Rigging/lifting" },
+      { ja: "片付け・清掃", vi: "Dọn dẹp/vệ sinh", en: "Cleanup" }
+    ];
+
+    const SAFETY_ITEMS = [
+      "朝礼・KYに参加",
+      "保護具を着用",
+      "工具・機械点検",
+      "足場・開口部確認",
+      "片付け・清掃",
+      "安全帯を使用"
+    ];
+
+    const I18N = {
+      vi: {
+        menu: "Menu",
+        pageReport: "Làm báo cáo hôm nay",
+        pageCalendar: "Lịch làm việc",
+        pageSettings: "Cài đặt",
+        navReport: "📝 Làm báo cáo hôm nay",
+        navCalendar: "📅 Lịch làm việc",
+        navSettings: "⚙️ Cài đặt",
+        loginSubtitle: "Đăng nhập bằng tài khoản Google để tự động ghi nhận người gửi báo cáo.",
+        demoLogin: "Dùng thử nhanh với tài khoản mẫu",
+        lblDate: "Ngày (日付)",
+        lblSite: "Tên công trình (現場名)",
+        lblWeather: "Thời tiết (天候)",
+        lblWorkType: "Phân loại đi làm (出勤の区分)",
+        lblHealth: "Sức khỏe (体調)",
+        lblStart: "Giờ bắt đầu",
+        lblEnd: "Giờ kết thúc",
+        lblBreak: "Thời gian nghỉ (phút - 休憩時間)",
+        breakHint: "Mặc định 120 phút: 08:00–10:00, nghỉ 30p, 10:30–12:00, trưa 60p, 13:00–15:00, nghỉ 30p, 15:30–17:00.",
+        lblTask: "Nội dung công việc hôm nay (今日の作業内容)",
+        lblTools: "Máy móc / dụng cụ (使用した機械・工具)",
+        lblSafety: "Xác nhận an toàn (安全確認)",
+        btnCheckAll: "Chọn tất cả",
+        lblMemo: "ヒヤリハット・明日の予定 (Tùy chọn)",
+        btnSubmit: "Gửi báo cáo (送信)",
+        prevMonth: "◀ Tháng trước",
+        nextMonth: "Tháng sau ▶",
+        calHint: "Bấm vào ngày bất kỳ để xem hoặc bổ sung báo cáo cho ngày đó.",
+        addForDay: "+ Bổ sung báo cáo",
+        lblAccount: "Tài khoản đăng nhập",
+        btnLogout: "Đăng xuất",
+        lblLang: "Ngôn ngữ (言語 / Language)",
+        lblTheme: "Chế độ giao diện",
+        btnSaveCfg: "Lưu cấu hình",
+        savedReport: "Đã lưu báo cáo thành công!",
+        noReportDay: "Chưa có báo cáo cho ngày này."
+      },
+      ja: {
+        menu: "メニュー",
+        pageReport: "本日の作業日報",
+        pageCalendar: "勤務カレンダー",
+        pageSettings: "設定",
+        navReport: "📝 本日の作業日報",
+        navCalendar: "📅 勤務カレンダー",
+        navSettings: "⚙️ 設定",
+        loginSubtitle: "Googleアカウントでログインして送信者を自動記録します。",
+        demoLogin: "サンプルアカウントでクイック試用",
+        lblDate: "日付",
+        lblSite: "現場名",
+        lblWeather: "天候",
+        lblWorkType: "出勤の区分",
+        lblHealth: "体調",
+        lblStart: "作業開始の時刻",
+        lblEnd: "作業終了の時刻",
+        lblBreak: "休憩時間（分）",
+        breakHint: "既定120分：8:00-10:00、休憩30分、10:30-12:00、昼60分、13:00-15:00、休憩30分、15:30-17:00。",
+        lblTask: "今日の作業内容",
+        lblTools: "使用した機械・工具",
+        lblSafety: "安全確認",
+        btnCheckAll: "すべて選択",
+        lblMemo: "ヒヤリハット・明日の予定",
+        btnSubmit: "送信する",
+        prevMonth: "◀ 前月",
+        nextMonth: "翌月 ▶",
+        calHint: "日付をタップすると閲覧や過去の報告追加ができます。",
+        addForDay: "+ 日報を追加",
+        lblAccount: "ログインアカウント",
+        btnLogout: "ログアウト",
+        lblLang: "言語設定",
+        lblTheme: "テーマ設定",
+        btnSaveCfg: "設定を保存",
+        savedReport: "日報を保存しました！",
+        noReportDay: "この日の日報はありません。"
+      },
+      en: {
+        menu: "Menu",
+        pageReport: "Today's Work Report",
+        pageCalendar: "Work Calendar",
+        pageSettings: "Settings",
+        navReport: "📝 Today's Work Report",
+        navCalendar: "📅 Work Calendar",
+        navSettings: "⚙️ Settings",
+        loginSubtitle: "Sign in with Google to automatically record who submitted each report.",
+        demoLogin: "Quick Demo with Sample Account",
+        lblDate: "Date (日付)",
+        lblSite: "Site Name (現場名)",
+        lblWeather: "Weather (天候)",
+        lblWorkType: "Work Type (出勤の区分)",
+        lblHealth: "Condition (体調)",
+        lblStart: "Start Time",
+        lblEnd: "End Time",
+        lblBreak: "Break Time (minutes)",
+        breakHint: "Default 120m: 08:00-10:00, 30m break, 10:30-12:00, 60m lunch, 13:00-15:00, 30m break, 15:30-17:00.",
+        lblTask: "Today's Tasks (今日の作業内容)",
+        lblTools: "Equipment / Tools (使用した機械・工具)",
+        lblSafety: "Safety Check (安全確認)",
+        btnCheckAll: "Select All",
+        lblMemo: "Near-miss / Tomorrow's Plan",
+        btnSubmit: "Submit Report",
+        prevMonth: "◀ Prev Month",
+        nextMonth: "Next Month ▶",
+        calHint: "Tap any date to view or add a report for that day.",
+        addForDay: "+ Add Report",
+        lblAccount: "Signed-in Account",
+        btnLogout: "Sign Out",
+        lblLang: "Language",
+        lblTheme: "Appearance",
+        btnSaveCfg: "Save Settings",
+        savedReport: "Report saved!",
+        noReportDay: "No reports for this date."
+      }
+    };
+
+    let state = {
+      user: null,
+      lang: localStorage.getItem("app_lang") || "vi",
+      theme: localStorage.getItem("app_theme") || "light",
+      scriptUrl: localStorage.getItem("app_script_url") || "",
+      clientId: localStorage.getItem("app_client_id") || "",
+      weather: WEATHERS[0].ja,
+      workType: WORK_TYPES[0].ja,
+      health: HEALTH_TYPES[0].ja,
+      reports: JSON.parse(localStorage.getItem("app_reports") || "[]"),
+      calYear: new Date().getFullYear(),
+      calMonth: new Date().getMonth(),
+      selectedDate: todayStr(),
+      currentPage: "report"
+    };
+
+    function todayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.style.display = "block";
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { el.style.display = "none"; }, 2400);
+    }
+
+    function initInputs() {
+      document.getElementById("fDate").value = todayStr();
+      document.getElementById("cfgScriptUrl").value = state.scriptUrl;
+      document.getElementById("cfgClientId").value = state.clientId;
+      document.getElementById("selLang").value = state.lang;
+    }
+
+    function renderPills() {
+      const lang = state.lang;
+      document.getElementById("weatherGroup").innerHTML = WEATHERS.map(w =>
+        `<button type="button" class="pill ${state.weather === w.ja ? "active" : ""}" onclick="selectWeather('${w.ja}')">${w[lang]}</button>`
+      ).join("");
+
+      document.getElementById("workTypeGroup").innerHTML = WORK_TYPES.map(wt =>
+        `<button type="button" class="pill ${state.workType === wt.ja ? "active" : ""}" onclick="selectWorkType('${wt.ja}')">${wt[lang]} (${wt.ja})</button>`
+      ).join("");
+
+      document.getElementById("healthGroup").innerHTML = HEALTH_TYPES.map(h =>
+        `<button type="button" class="pill ${state.health === h.ja ? "active" : ""}" onclick="selectHealth('${h.ja}', ${h.bad})">${h[lang]} (${h.ja})</button>`
+      ).join("");
+
+      document.getElementById("taskPresets").innerHTML = TASK_PRESETS.map(t =>
+        `<button type="button" class="pill" onclick="fillTask('${t.ja}')">${t[lang]}</button>`
+      ).join("");
+
+      document.getElementById("safetyList").innerHTML = SAFETY_ITEMS.map((item, idx) =>
+        `<label class="check-item"><input type="checkbox" class="safety-cb" id="safe_${idx}" value="${item}" /> <span>${item}</span></label>`
+      ).join("");
+    }
+
+    function selectWeather(val) { state.weather = val; renderPills(); }
+    function selectWorkType(val) { state.workType = val; renderPills(); }
+    function selectHealth(val, isBad) {
+      state.health = val;
+      document.getElementById("healthNoteBox").classList.toggle("hidden", !isBad);
+      renderPills();
+    }
+    function fillTask(jaText) {
+      const inp = document.getElementById("fTask");
+      inp.value = inp.value ? `${inp.value} / ${jaText}` : jaText;
+    }
+    function checkAllSafety(checked) {
+      document.querySelectorAll(".safety-cb").forEach(cb => { cb.checked = checked; });
+    }
+
+    function applyLanguage() {
+      const t = I18N[state.lang] || I18N.vi;
+      document.getElementById("topMenuLabel").textContent = t.menu;
+      document.getElementById("navReport").textContent = t.navReport;
+      document.getElementById("navCalendar").textContent = t.navCalendar;
+      document.getElementById("navSettings").textContent = t.navSettings;
+      document.getElementById("loginSubtitle").textContent = t.loginSubtitle;
+      document.getElementById("btnDemoLogin").textContent = t.demoLogin;
+      document.getElementById("lblDate").textContent = t.lblDate;
+      document.getElementById("lblSite").textContent = t.lblSite;
+      document.getElementById("lblWeather").textContent = t.lblWeather;
+      document.getElementById("lblWorkType").textContent = t.lblWorkType;
+      document.getElementById("lblHealth").textContent = t.lblHealth;
+      document.getElementById("lblStart").textContent = t.lblStart;
+      document.getElementById("lblEnd").textContent = t.lblEnd;
+      document.getElementById("lblBreak").textContent = t.lblBreak;
+      document.getElementById("breakHint").textContent = t.breakHint;
+      document.getElementById("lblTask").textContent = t.lblTask;
+      document.getElementById("lblTools").textContent = t.lblTools;
+      document.getElementById("lblSafety").textContent = t.lblSafety;
+      document.getElementById("btnCheckAll").textContent = t.btnCheckAll;
+      document.getElementById("lblMemo").textContent = t.lblMemo;
+      document.getElementById("btnSubmit").textContent = t.btnSubmit;
+      document.getElementById("btnPrevMonth").textContent = t.prevMonth;
+      document.getElementById("btnNextMonth").textContent = t.nextMonth;
+      document.getElementById("calHint").textContent = t.calHint;
+      document.getElementById("btnAddForDay").textContent = t.addForDay;
+      document.getElementById("lblAccount").textContent = t.lblAccount;
+      document.getElementById("btnLogout").textContent = t.btnLogout;
+      document.getElementById("lblLang").textContent = t.lblLang;
+      document.getElementById("lblTheme").textContent = t.lblTheme;
+      document.getElementById("btnSaveCfg").textContent = t.btnSaveCfg;
+
+      const titles = { report: t.pageReport, calendar: t.pageCalendar, settings: t.pageSettings };
+      document.getElementById("topPageTitle").textContent = titles[state.currentPage] || t.pageReport;
+      renderPills();
+      renderCalendar();
+    }
+
+    function setLanguage(lang) {
+      state.lang = lang;
+      localStorage.setItem("app_lang", lang);
+      applyLanguage();
+    }
+
+    function setTheme(theme) {
+      state.theme = theme;
+      localStorage.setItem("app_theme", theme);
+      document.documentElement.setAttribute("data-theme", theme);
+      document.getElementById("btnLight").classList.toggle("active", theme === "light");
+      document.getElementById("btnDark").classList.toggle("active", theme === "dark");
+    }
+
+    function saveConfig() {
+      state.scriptUrl = document.getElementById("cfgScriptUrl").value.trim();
+      state.clientId = document.getElementById("cfgClientId").value.trim();
+      localStorage.setItem("app_script_url", state.scriptUrl);
+      localStorage.setItem("app_client_id", state.clientId);
+      showToast("Saved!");
+    }
+
+    function setUser(user) {
+      state.user = user;
+      localStorage.setItem("app_user", JSON.stringify(user));
+      const initial = (user.name || "U").charAt(0).toUpperCase();
+      ["topAvatar", "drawerAvatar"].forEach(id => {
+        const el = document.getElementById(id);
+        if (user.picture) {
+          el.innerHTML = `<img src="${user.picture}" alt="" class="avatar" />`;
+        } else {
+          el.textContent = initial;
+        }
+      });
+      document.getElementById("drawerName").textContent = user.name;
+      document.getElementById("drawerEmail").textContent = user.email;
+      document.getElementById("settingsAccountInfo").textContent = `${user.name} (${user.email})`;
+
+      document.getElementById("loginScreen").classList.add("hidden");
+      document.getElementById("appScreen").classList.remove("hidden");
+      applyLanguage();
+    }
+
+    function demoLogin() {
+      setUser({
+        name: "バオ (Demo)",
+        email: "demo.worker@example.com",
+        picture: ""
+      });
+    }
+
+    function logout() {
+      localStorage.removeItem("app_user");
+      state.user = null;
+      toggleDrawer(false);
+      document.getElementById("appScreen").classList.add("hidden");
+      document.getElementById("loginScreen").classList.remove("hidden");
+    }
+
+    function toggleDrawer(open) {
+      document.getElementById("drawer").classList.toggle("open", open);
+      document.getElementById("drawerBackdrop").classList.toggle("open", open);
+    }
+
+    function switchPage(page) {
+      state.currentPage = page;
+      toggleDrawer(false);
+      document.getElementById("pageReport").classList.toggle("hidden", page !== "report");
+      document.getElementById("pageCalendar").classList.toggle("hidden", page !== "calendar");
+      document.getElementById("pageSettings").classList.toggle("hidden", page !== "settings");
+
+      document.getElementById("navReport").classList.toggle("active", page === "report");
+      document.getElementById("navCalendar").classList.toggle("active", page === "calendar");
+      document.getElementById("navSettings").classList.toggle("active", page === "settings");
+
+      applyLanguage();
+      if (page === "calendar") renderCalendar();
+    }
+
+    async function submitReport(e) {
+      e.preventDefault();
+      const senderName = state.user ? state.user.name : "";
+      const senderEmail = state.user ? state.user.email : "";
+
+      const safetyChecked = Array.from(document.querySelectorAll(".safety-cb:checked")).map(cb => cb.value);
+      const payload = {
+        timestamp: new Date().toISOString(),
+        userEmail: senderEmail,
+        userName: senderName,
+        "日付": document.getElementById("fDate").value,
+        "氏名": senderName,
+        "現場名": document.getElementById("fSite").value.trim(),
+        "天候": state.weather,
+        "出勤の区分": state.workType,
+        "作業開始の時刻": document.getElementById("fStart").value,
+        "作業終了の時刻": document.getElementById("fEnd").value,
+        "休憩時間": `${document.getElementById("fBreak").value}分`,
+        "体調": state.health,
+        "体調不良の内容": document.getElementById("fHealthNote").value.trim() || "なし",
+        "今日の作業内容": document.getElementById("fTask").value.trim(),
+        "使用した機械工具": document.getElementById("fTools").value.trim() || "なし",
+        "安全確認": safetyChecked.join("、") || "未確認",
+        "ヒヤリハット気づいたこと": document.getElementById("fMemo").value.trim() || "特になし",
+        "明日の予定連絡事項": "特になし"
+      };
+
+      state.reports.push(payload);
+      localStorage.setItem("app_reports", JSON.stringify(state.reports));
+
+      if (state.scriptUrl) {
+        try {
+          await fetch(state.scriptUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      showToast((I18N[state.lang] || I18N.vi).savedReport);
+      state.selectedDate = payload["日付"];
+      document.getElementById("fTask").value = "";
+      document.getElementById("fMemo").value = "";
+      checkAllSafety(false);
+    }
+
+    function changeMonth(delta) {
+      state.calMonth += delta;
+      if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+      if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById("calGrid");
+      if (!grid) return;
+      const y = state.calYear;
+      const m = state.calMonth;
+      document.getElementById("calMonthTitle").textContent = `${y} / ${String(m + 1).padStart(2, "0")}`;
+
+      const dows = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const firstDay = new Date(y, m, 1).getDay();
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      const today = todayStr();
+
+      let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join("");
+      for (let i = 0; i < firstDay; i++) {
+        html += `<div class="cal-day empty"></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const dayReports = state.reports.filter(r => r["日付"] === dateStr);
+        const isToday = dateStr === today ? "today" : "";
+        const chips = dayReports.slice(0, 2).map(r => {
+          const isHoliday = r["出勤の区分"] === "休日出勤";
+          return `<div class="event-chip ${isHoliday ? "holiday" : ""}">${r["氏名"]} · ${r["現場名"]}</div>`;
+        }).join("");
+        const more = dayReports.length > 2 ? `<div class="hint" style="margin:0;font-size:10px;">+${dayReports.length - 2}</div>` : "";
+
+        html += `
+          <div class="cal-day ${isToday}" onclick="selectCalendarDate('${dateStr}')">
+            <span class="cal-num">${day}</span>
+            ${chips}
+            ${more}
+          </div>
+        `;
+      }
+      grid.innerHTML = html;
+      renderDayDetail(state.selectedDate);
+    }
+
+    function selectCalendarDate(dateStr) {
+      state.selectedDate = dateStr;
+      renderDayDetail(dateStr);
+    }
+
+    function renderDayDetail(dateStr) {
+      const card = document.getElementById("dayDetailCard");
+      const listEl = document.getElementById("dayReportsList");
+      card.classList.remove("hidden");
+      document.getElementById("selectedDateTitle").textContent = dateStr;
+
+      const items = state.reports.filter(r => r["日付"] === dateStr);
+      if (!items.length) {
+        listEl.innerHTML = `<p class="hint">${(I18N[state.lang] || I18N.vi).noReportDay}</p>`;
+        return;
+      }
+      listEl.innerHTML = items.map(r => `
+        <div style="padding: 8px 0; border-top: 1px solid var(--border); font-size: 13px;">
+          <div><strong>${r["氏名"]}</strong> (${r["出勤の区分"]}) — ${r["現場名"]}</div>
+          <div class="hint">${r["作業開始の時刻"]}〜${r["作業終了の時刻"]} (${r["休憩時間"]}) | ${r["今日の作業内容"]}</div>
+        </div>
+      `).join("");
+    }
+
+    function addReportForSelectedDate() {
+      document.getElementById("fDate").value = state.selectedDate;
+      switchPage("report");
+    }
+
+    initInputs();
+    setTheme(state.theme);
+    const savedUser = localStorage.getItem("app_user");
+    if (savedUser) {
+      try { setUser(JSON.parse(savedUser)); } catch (e) {}
+    } else {
+      applyLanguage();
+    }
+  </script>
+</body>
+</html>
